@@ -5,9 +5,18 @@ import '../../common/helpers.dart';
 
 class CircularSliderController extends ChangeNotifier {
   double currentAngle = 0;
+  int day = 0;
   CircularSliderController({
-    required this.currentAngle,
-  });
+    required this.day,
+  }) {
+    currentAngle = degToRad(day * 12);
+  }
+
+  changeDay(int day) {
+    this.day = day - 1;
+    currentAngle = degToRad(((day - 1) * 12) + 184);
+    notifyListeners();
+  }
 
   changeAngle(double angle) {
     currentAngle = angle;

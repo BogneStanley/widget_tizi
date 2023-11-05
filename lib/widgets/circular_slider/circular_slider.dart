@@ -8,7 +8,8 @@ import 'package:widget_tizi/common/helpers.dart';
 import 'package:widget_tizi/widgets/circular_slider/circular_slider_controller.dart';
 
 class CircularSlider extends StatefulWidget {
-  const CircularSlider({super.key});
+  final CircularSliderController controller;
+  const CircularSlider({super.key, required this.controller});
 
   @override
   State<CircularSlider> createState() => _CircularSliderState();
@@ -16,12 +17,17 @@ class CircularSlider extends StatefulWidget {
 
 class _CircularSliderState extends State<CircularSlider> {
   Offset currentDragOffset = Offset.zero;
-  double currentAngle = 0;
-  CircularSliderController controller = CircularSliderController(
-    currentAngle: 0,
-  );
   double startAngle = degToRad(90);
   double totalAngle = degToRad(360);
+
+  @override
+  void initState() {
+    widget.controller.addListener(() {
+      setState(() {});
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -31,15 +37,17 @@ class _CircularSliderState extends State<CircularSlider> {
         30, (index) => generateSmallSlideDot(index, center, startAngle));
     Offset slideDotPos = toPolar(
         center -
-            Offset(Constants.defaultStrockWidth, Constants.defaultStrockWidth),
-        currentAngle + startAngle,
+            const Offset(
+                Constants.defaultStrockWidth, Constants.defaultStrockWidth),
+        widget.controller.currentAngle + startAngle,
         Constants.radius);
     return Stack(
       children: [
         CustomPaint(
           size: canvasSize,
           painter: CircleSliderPainter(
-              startAngle: startAngle, currentAngle: currentAngle),
+              startAngle: startAngle,
+              currentAngle: widget.controller.currentAngle),
         ),
         ...dots,
         Positioned(
@@ -53,15 +61,14 @@ class _CircularSliderState extends State<CircularSlider> {
             onPanUpdate: (details) {
               var previousOffset = currentDragOffset;
               currentDragOffset += details.delta;
-              var angle = currentAngle +
+              var angle = widget.controller.currentAngle +
                   toAngle(currentDragOffset, center) -
                   toAngle(previousOffset, center);
-              currentAngle = normalizeAngle(angle);
-              print(degToDays(radToDeg((currentAngle))));
-              setState(() {});
+              widget.controller.changeAngle(normalizeAngle(angle));
+              print(degToDays(radToDeg((widget.controller.currentAngle))));
             },
             child: SlideDot(
-              currentAngle: currentAngle,
+              currentAngle: widget.controller.currentAngle,
             ),
           ),
         ),
@@ -196,13 +203,14 @@ Widget generateSmallSlideDot(int dotNumber, Offset center, double startAngle) {
   print(degToRad(degToDays(dotNumber.toDouble()).toDouble()));
   Offset slideDotPos = toPolar(
       center -
-          Offset(Constants.defaultStrockWidth, Constants.defaultStrockWidth),
+          const Offset(
+              Constants.defaultStrockWidth, Constants.defaultStrockWidth),
       degToRad((dotNumber * 12) + 4) + startAngle,
       Constants.radius);
   return Positioned(
     top: slideDotPos.dy,
     left: slideDotPos.dx,
-    child: SmallSlideDot(),
+    child: const SmallSlideDot(),
   );
 }
 
@@ -222,7 +230,7 @@ class SmallSlideDot extends StatelessWidget {
         child: Container(
           height: 5,
           width: 5,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
           ),
