@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:widget_tizi/common/constants.dart';
 import 'package:widget_tizi/common/helpers.dart';
 import 'package:widget_tizi/widgets/circular_slider/circular_slider_controller.dart';
+import 'package:lottie/lottie.dart';
 
 class CircularSlider extends StatefulWidget {
   final CircularSliderController controller;
@@ -34,7 +35,123 @@ class _CircularSliderState extends State<CircularSlider> {
     Size canvasSize = Size(screenSize.width, screenSize.width - 35);
     Offset center = canvasSize.center(Offset.zero);
     final List dots = List.generate(
-        30, (index) => generateSmallSlideDot(index, center, startAngle));
+      30,
+      (index) => generateSmallSlideDot(
+        dotNumber: index,
+        center: center,
+        startAngle: startAngle,
+        dotColor: Colors.white,
+        dotSize: 5,
+      ),
+    );
+    final List innerDots = List.generate(
+      30,
+      (i) {
+        var index = i;
+        if (0 <= index && index < 6) {
+          return generateSmallSlideDot(
+            dotNumber: index,
+            center: center,
+            startAngle: startAngle,
+            dotSize: 15,
+            dotColor: Color.fromARGB(0, 255, 143, 143),
+            icon: const Icon(
+              Icons.water_drop_outlined,
+              color: Color.fromARGB(255, 255, 76, 76),
+              size: 10,
+            ),
+            raduisSubstract: 25,
+          );
+        }
+        if ((6 <= index && index < 11)) {
+          return generateSmallSlideDot(
+            dotNumber: index,
+            center: center,
+            startAngle: startAngle,
+            dotSize: 15,
+            dotColor: Color.fromARGB(0, 255, 143, 143),
+            icon: const Icon(
+              Icons.circle_outlined,
+              color: Color.fromARGB(255, 211, 211, 211),
+              size: 10,
+            ),
+            raduisSubstract: 25,
+          );
+        }
+        if ((17 <= index && index < 22)) {
+          return generateSmallSlideDot(
+            dotNumber: index,
+            center: center,
+            startAngle: startAngle,
+            dotSize: 15,
+            dotColor: Color.fromARGB(0, 255, 143, 143),
+            icon: const Icon(
+              Icons.circle_outlined,
+              color: Color.fromARGB(255, 211, 211, 211),
+              size: 10,
+            ),
+            raduisSubstract: 25,
+          );
+        }
+        if (11 <= index && index < 17) {
+          return generateSmallSlideDot(
+            dotNumber: index,
+            center: center,
+            startAngle: startAngle,
+            dotSize: 15,
+            dotColor: Color.fromARGB(0, 255, 143, 143),
+            icon: const Icon(
+              Icons.adjust,
+              color: Color.fromARGB(255, 211, 211, 211),
+              size: 10,
+            ),
+            raduisSubstract: 25,
+          );
+        }
+        if (17 <= index && index < 28) {
+          return generateSmallSlideDot(
+            dotNumber: index,
+            center: center,
+            startAngle: startAngle,
+            dotSize: 15,
+            dotColor: Color.fromARGB(0, 255, 143, 143),
+            icon: Transform.rotate(
+              angle: 45 * math.pi / 180,
+              child: const Icon(
+                Icons.square_outlined,
+                color: Color.fromARGB(255, 76, 124, 255),
+                size: 10,
+              ),
+            ),
+            raduisSubstract: 25,
+          );
+        }
+        return Container();
+      },
+    );
+
+    final List innerDotsLevel2 = List.generate(
+      30,
+      (i) {
+        var index = i;
+        if ((0 < index && index < 6) ||
+            (12 < index && index < 17) ||
+            (24 < index && index < 28) ||
+            (21 == index) ||
+            (19 == index)) {
+          return generateSmallSlideDot(
+            dotNumber: index,
+            center: center,
+            startAngle: startAngle,
+            dotSize: 5,
+            dotColor: Color.fromARGB(255, 213, 241, 226),
+            raduisSubstract: 36,
+          );
+        }
+        return SizedBox();
+      },
+    );
+
     Offset slideDotPos = toPolar(
         center -
             const Offset(
@@ -50,6 +167,20 @@ class _CircularSliderState extends State<CircularSlider> {
               currentAngle: widget.controller.currentAngle),
         ),
         ...dots,
+        ...innerDots,
+        ...innerDotsLevel2,
+        Container(
+          height: canvasSize.height,
+          child: Center(
+            child: LottieBuilder.asset(
+              "assets/lotties/animation.json",
+              height: 150,
+              width: 150,
+              reverse: true,
+              frameRate: FrameRate.max,
+            ),
+          ),
+        ),
         Positioned(
           top: slideDotPos.dy,
           left: slideDotPos.dx,
@@ -65,9 +196,8 @@ class _CircularSliderState extends State<CircularSlider> {
                   toAngle(currentDragOffset, center) -
                   toAngle(previousOffset, center);
               widget.controller.changeAngle(normalizeAngle(angle));
-              print(degToDays(radToDeg((widget.controller.currentAngle))));
             },
-            child: SlideDot(
+            child: DraggableSliderThumb(
               currentAngle: widget.controller.currentAngle,
             ),
           ),
@@ -163,9 +293,9 @@ class CircleSliderPainter extends CustomPainter {
   }
 }
 
-class SlideDot extends StatelessWidget {
+class DraggableSliderThumb extends StatelessWidget {
   final double currentAngle;
-  const SlideDot({super.key, required this.currentAngle});
+  const DraggableSliderThumb({super.key, required this.currentAngle});
 
   @override
   Widget build(BuildContext context) {
@@ -199,23 +329,42 @@ class SlideDot extends StatelessWidget {
   }
 }
 
-Widget generateSmallSlideDot(int dotNumber, Offset center, double startAngle) {
-  print(degToRad(degToDays(dotNumber.toDouble()).toDouble()));
+Widget generateSmallSlideDot({
+  required int dotNumber,
+  required Offset center,
+  required double startAngle,
+  required Color dotColor,
+  double? dotSize,
+  double raduisSubstract = 0,
+  Widget? icon,
+}) {
   Offset slideDotPos = toPolar(
       center -
           const Offset(
               Constants.defaultStrockWidth, Constants.defaultStrockWidth),
-      degToRad((dotNumber * 12) + 4) + startAngle,
-      Constants.radius);
+      degToRad((dotNumber * 12) + 4 + 180) + startAngle,
+      Constants.radius - raduisSubstract);
   return Positioned(
     top: slideDotPos.dy,
     left: slideDotPos.dx,
-    child: const SmallSlideDot(),
+    child: SmallSlideDot(
+      dotColor: dotColor,
+      icon: icon,
+      size: dotSize ?? 8,
+    ),
   );
 }
 
 class SmallSlideDot extends StatelessWidget {
-  const SmallSlideDot({super.key});
+  final Color dotColor;
+  final Widget? icon;
+  final double size;
+  const SmallSlideDot({
+    super.key,
+    required this.dotColor,
+    this.icon,
+    this.size = 8,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -228,11 +377,14 @@ class SmallSlideDot extends StatelessWidget {
       ),
       child: Center(
         child: Container(
-          height: 5,
-          width: 5,
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          height: size,
+          width: size,
+          decoration: BoxDecoration(
+            color: dotColor,
             shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: icon ?? null,
           ),
         ),
       ),
